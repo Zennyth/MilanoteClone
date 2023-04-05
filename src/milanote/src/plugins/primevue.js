@@ -85,6 +85,8 @@ import Tree from 'primevue/tree';
 import TreeSelect from 'primevue/treeselect';
 import TreeTable from 'primevue/treetable';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
+import Editor from 'primevue/editor';
+
 // import locale from '@/i18n/locales/fr.local.json'
 
 export default {
@@ -179,5 +181,6 @@ export default {
         app.component('TreeSelect', TreeSelect);
         app.component('TreeTable', TreeTable);
         app.component('TriStateCheckbox', TriStateCheckbox);
+        app.component('Editor', Editor);
     }
 }

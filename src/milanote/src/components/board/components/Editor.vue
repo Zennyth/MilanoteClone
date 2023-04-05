@@ -1,18 +1,11 @@
 <template>
-  <Card 
-    :style="style" 
-  >
-    <template #title> {{ component.title }} </template>
-    <template #content>
-      <p>
-        {{ component.paragraph }}
-      </p>
-    </template>
-  </Card>
-</template>
+  <Editor v-model="component.text" editorStyle="height: 320px" :style="style">
 
+  </Editor>
+</template>
+  
 <script setup>
-import { computed } from 'vue'
+import { computed, watch, ref } from 'vue'
 
 const props = defineProps(['modelValue'])
 const emit = defineEmits(['update:modelValue'])
@@ -24,11 +17,11 @@ const component = computed({
   set(value) {
     emit('update:modelValue', value)
   }
-})
+});
 
 const style = computed(() => ({
   position: 'absolute',
   top: component.value.top + 'px',
   left: component.value.left + 'px'
-}));
+}))
 </script>
