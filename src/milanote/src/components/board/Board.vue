@@ -1,14 +1,17 @@
 <template>
-  <div class="board" v-on:click.right="addComponent">
+  <div 
+    class="board" 
+    @mousemove="$event => move($event, store.components[index])"
+    @mouseup="$event => stopDrag($event, store.components[index])" 
+    @click.right="addComponent"
+  >
     <component
       v-for="(component, index) in store.components"
       :is="component.type"
       :key="component.id"
       v-model="store.components[index]"
 
-      @mousedown="$event => drag($event, store.components[index])" 
-      @mouseup="$event => stopDrag($event, store.components[index])" 
-      @mousemove="$event => move($event, store.components[index])"
+      @mousedown="$event => startDrag($event, store.components[index])" 
       
       :class="{
         'draggable': !isDragging,
@@ -35,39 +38,50 @@ function addComponent(event) {
   })
 }
 
-const isDragging = ref(false);
-const dragOffest = ref({
-  top: 0,
-  left: 0
+const drag = ref({
+  target: null,
+  offset: {top: 0, left: 0},
+  isDragging: false,
+  timeout: null,
 })
 
-const drag = (event, component) => {
-  isDragging.value = true;
-  dragOffest.value.top = event.clientY - component.top;
-  dragOffest.value.left = event.clientX - component.left;
-  event.preventDefault();
+const startDrag = (event, component) => {
+  drag.value.timeout = setTimeout(() => {
+    drag.value.isDragging = true;
+    drag.value.target = component;
+    drag.value.offset.top = event.clientY - component.top;
+    drag.value.offset.left = event.clientX - component.left;
+    drag.value.timeout = null;
+    event.preventDefault();
+  }, 100);
 }
 
-const move = (event, component) => {
-  if(!isDragging.value)
+const move = (event) => {
+  if(!drag.value.isDragging)
     return;
   
-  component.left = event.clientX - dragOffest.value.left;
-  component.top = event.clientY - dragOffest.value.top;
+  drag.value.target.left = event.clientX - drag.value.offset.left;
+  drag.value.target.top = event.clientY - drag.value.offset.top;
 }
 
-const stopDrag = (event, component) => {
-  isDragging.value = false;
+const stopDrag = (event) => {
+  if(drag.value.timeout !== null) {
+    clearTimeout(drag.value.timeout);
+    return;
+  }
+
+  drag.value.isDragging = false;
+  drag.value.target = null;
   event.preventDefault();
 }
 </script>
 
 <style lang="scss">
-.draggable {
-  cursor: grab;
-}
+// .draggable {
+//   cursor: grab;
+// }
 
-.dragging {
-  cursor: grabbing;
-}
+// .dragging {
+//   cursor: grabbing;
+// }
 </style>
