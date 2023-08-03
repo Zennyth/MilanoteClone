@@ -11,8 +11,8 @@
       :key="component.id"
       v-model="store.components[index]"
       :is-dragging="clickState.isDragging"
-      @mousedown="($event) => startDrag($event, component)"
     >
+      <!-- @mousedown="($event) => startDrag($event, component)" -->
     </BoardComponent>
   </div>
 </template>
@@ -28,7 +28,7 @@ const snapSettings = ref({
   gridSize: 22
 })
 function snapValueToGrid(val, gridSize) {
-  var snap_candidate = gridSize * Math.floor(val / gridSize)
+  var snap_candidate = gridSize * Math.round(val / gridSize)
   if (val - snap_candidate < 2) {
     return snap_candidate
   } else {
@@ -90,8 +90,14 @@ const move = (event) => {
   clickState.value.target.top = event.clientY - clickState.value.offset.top
 
   if (snapToGrid.value) {
-    clickState.value.target.left = snapValueToGrid(clickState.value.target.left, snapSettings.value.gridSize);
-    clickState.value.target.top = snapValueToGrid(clickState.value.target.top, snapSettings.value.gridSize);
+    clickState.value.target.left = snapValueToGrid(
+      clickState.value.target.left,
+      snapSettings.value.gridSize
+    )
+    clickState.value.target.top = snapValueToGrid(
+      clickState.value.target.top,
+      snapSettings.value.gridSize
+    )
   }
 
   clickState.value.hasMoved = true

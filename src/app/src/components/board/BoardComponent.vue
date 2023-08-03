@@ -11,7 +11,7 @@
     <component :is="component.type" v-model="component" />
   </div>
 </template>
-  
+
 <script setup>
 import { computed } from 'vue'
 
@@ -30,9 +30,14 @@ const component = computed({
 const style = computed(() => ({
   position: 'absolute',
   top: component.value.top + 'px',
-  left: component.value.left + 'px'
+  left: component.value.left + 'px',
+  with: component.value.with + 'px',
+  height: component.value.height + 'px'
 }))
 </script>
-  
+
 <style lang="scss">
+.board-component {
+  position: relative;
+}
 </style>

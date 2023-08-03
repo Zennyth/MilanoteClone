@@ -1,8 +1,10 @@
 <template>
   <img :src="component.src" draggable="false" />
+  <Resize v-model="component" />
 </template>
     
 <script setup>
+import Resize from '../options/Resize.vue';
 import { computed } from 'vue'
 
 const props = defineProps(['modelValue'])
