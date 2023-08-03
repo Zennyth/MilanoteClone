@@ -8,7 +8,11 @@
     }"
     :style="style"
   >
-    <component :is="component.type" v-model="component" />
+    <component
+      :is="component.type"
+      v-model="component"
+      @mousedown="($event) => componentMousedown($event, component)"
+    />
   </div>
 </template>
 
@@ -16,7 +20,7 @@
 import { computed } from 'vue'
 
 const props = defineProps(['modelValue', 'isDragging'])
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue', 'componentMousedown'])
 
 const component = computed({
   get() {
@@ -34,6 +38,10 @@ const style = computed(() => ({
   with: component.value.with + 'px',
   height: component.value.height + 'px'
 }))
+
+function componentMousedown(event) {
+  emit('componentMousedown', event, component);
+}
 </script>
 
 <style lang="scss">

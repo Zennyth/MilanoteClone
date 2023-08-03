@@ -2,8 +2,8 @@
   <div
     class="board"
     ref="board"
-    @mousemove="($event) => move($event, store.components[index])"
-    @mouseup="($event) => stopDrag($event, store.components[index])"
+    @mousemove="($event) => move($event)"
+    @mouseup="($event) => stopDrag($event)"
     @click.right="addComponent"
   >
     <BoardComponent
@@ -11,30 +11,21 @@
       :key="component.id"
       v-model="store.components[index]"
       :is-dragging="clickState.isDragging"
+      @component-mousedown="startDrag"
     >
-      <!-- @mousedown="($event) => startDrag($event, component)" -->
     </BoardComponent>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, inject, onMounted } from 'vue'
 import { store } from '@/services/syncedstore'
+import { boardStoreKey } from '@/keys'
+
 import BoardComponent from './BoardComponent.vue'
 
-const board = ref(null)
-const snapToGrid = ref(true)
-const snapSettings = ref({
-  gridSize: 22
-})
-function snapValueToGrid(val, gridSize) {
-  var snap_candidate = gridSize * Math.round(val / gridSize)
-  if (val - snap_candidate < 2) {
-    return snap_candidate
-  } else {
-    return null
-  }
-}
+const board = ref(null);
+const boardStore = inject(boardStoreKey);
 
 function addComponent(event) {
   event.preventDefault()
@@ -86,21 +77,9 @@ const startDrag = (event, component) => {
 const move = (event) => {
   if (!clickState.value.isDragging) return
 
-  clickState.value.target.left = event.clientX - clickState.value.offset.left
-  clickState.value.target.top = event.clientY - clickState.value.offset.top
-
-  if (snapToGrid.value) {
-    clickState.value.target.left = snapValueToGrid(
-      clickState.value.target.left,
-      snapSettings.value.gridSize
-    )
-    clickState.value.target.top = snapValueToGrid(
-      clickState.value.target.top,
-      snapSettings.value.gridSize
-    )
-  }
-
-  clickState.value.hasMoved = true
+  clickState.value.target.left = boardStore.computeSnapValue(event.clientX - clickState.value.offset.left);
+  clickState.value.target.top = boardStore.computeSnapValue(event.clientY - clickState.value.offset.top);
+  clickState.value.hasMoved = true;
 }
 
 const stopDrag = (event) => {
@@ -135,11 +114,4 @@ const stopDrag = (event) => {
 </script>
 
 <style lang="scss">
-// .draggable {
-//   cursor: grab;
-// }
-
-// .dragging {
-//   cursor: grabbing;
-// }
 </style>
