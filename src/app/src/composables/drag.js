@@ -26,7 +26,10 @@ export function useDrag(element, onDragging = (event) => {}) {
     window.addEventListener('mouseup', stopDragging);
   });
   onUnmounted(() => {
-    element.value.removeEventListener('mousedown', startDragging);
+    if(element.value !== null) {
+      element.value.removeEventListener('mousedown', startDragging);
+    }
+
     window.removeEventListener('mousemove', dragging);
     window.removeEventListener('mouseup', stopDragging);
   });

@@ -1,5 +1,4 @@
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
 
 import App from './App.vue'
 import router from './router'
@@ -12,7 +11,6 @@ import board from '@/plugins/board.js'
 import '@/assets/styles.scss';
 
 const app = createApp(App)
-  .use(createPinia())
   .use(store)
   .use(router)
   .use(primevue)

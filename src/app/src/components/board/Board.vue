@@ -18,14 +18,14 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted } from 'vue'
+import { ref, inject, onMounted, unref } from 'vue'
 import { store } from '@/services/syncedstore'
 import { boardStoreKey } from '@/keys'
 
-import BoardComponent from './BoardComponent.vue'
+import BoardComponent from '@/components/board/BoardComponent.vue';
 
-const board = ref(null);
-const boardStore = inject(boardStoreKey);
+const board = ref(null)
+const boardStore = inject(boardStoreKey)
 
 function addComponent(event) {
   event.preventDefault()
@@ -40,13 +40,15 @@ function addComponent(event) {
 }
 
 onMounted(() => {
+  boardStore.openBoard(board);
+
   store.components.forEach((c) => {
     c.isSelected = false
     c.isDragged = false
   })
 })
 
-const clickState = ref({
+const clickState = {
   isEvent: false,
   target: null,
   offset: { top: 0, left: 0 },
@@ -56,60 +58,67 @@ const clickState = ref({
   isDragging: false,
   hasMoved: false,
   timeout: null
-})
+}
 
 const startDrag = (event, component) => {
-  clickState.value.hasMoved = false
-  clickState.value.target = component
-  clickState.value.isEvent = true
+  clickState.hasMoved = false;
+  clickState.target = component;
+  clickState.isEvent = true;
 
-  clickState.value.timeout = setTimeout(() => {
-    clickState.value.isDragging = true
-    clickState.value.target.isDragged = true
-    clickState.value.offset.top = event.clientY - component.top
-    clickState.value.offset.left = event.clientX - component.left
-    clickState.value.timeout = null
+  clickState.timeout = setTimeout(() => {
+    if(clickState.target.value.isDraggable === false) {
+      return;
+    }
 
-    event.preventDefault()
+    clickState.isDragging = true;
+    clickState.target.value.isDragged = true;
+    clickState.offset.top = event.clientY - clickState.target.value.top;
+    clickState.offset.left = event.clientX - clickState.target.value.left;
+    clickState.timeout = null;
+
+    event.preventDefault();
   }, 100)
 }
 
 const move = (event) => {
-  if (!clickState.value.isDragging) return
+  if (!clickState.isDragging) return
 
-  clickState.value.target.left = boardStore.computeSnapValue(event.clientX - clickState.value.offset.left);
-  clickState.value.target.top = boardStore.computeSnapValue(event.clientY - clickState.value.offset.top);
-  clickState.value.hasMoved = true;
+  clickState.target.value.left = boardStore.computeSnapValue(
+    event.clientX - clickState.offset.left
+  )
+  clickState.target.value.top = boardStore.computeSnapValue(
+    event.clientY - clickState.offset.top
+  )
+  clickState.hasMoved = true
 }
 
 const stopDrag = (event) => {
-  clickState.value.isDragging = false
-  if (clickState.value.target !== null) {
-    clickState.value.target.isDragged = false
+  clickState.isDragging = false
+  if (clickState.target !== null && clickState.target.value !== null) {
+    clickState.target.value.isDragged = false
   }
 
-  if (!clickState.value.isEvent) {
-    if (clickState.value.target !== null) {
-      clickState.value.target.isSelected = false
+  if (!clickState.isEvent) {
+    if (clickState.target !== null && clickState.target.value !== null) {
+      clickState.target.value.isSelected = false
     }
 
-    clickState.value.target = null
-    clickState.value.hasMoved = false
+    clickState.hasMoved = false
     return
   }
 
-  clickState.value.isEvent = false
-  clearTimeout(clickState.value.timeout)
+  clickState.isEvent = false
+  clearTimeout(clickState.timeout)
 
   event.preventDefault()
 
-  if (!clickState.value.hasMoved) {
-    clickState.value.isSelected = true
-    clickState.value.target.isSelected = true
+  if (!clickState.hasMoved) {
+    clickState.isSelected = true
+    clickState.target.value.isSelected = true
     return
   }
 
-  clickState.value.target = null
+  unref(clickState.target)
 }
 </script>
 

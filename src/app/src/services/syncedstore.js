@@ -7,7 +7,7 @@ export const store = syncedStore({ components: [], fragment: "xml" });
 const doc = getYjsDoc(store);
 
 import { WebsocketProvider } from 'y-websocket'
-const provider = new WebsocketProvider("ws://localhost:8080", "syncedstore-board-4", doc)
+const provider = new WebsocketProvider("ws://localhost:8080", "syncedstore-board-5", doc)
 
 // import { WebrtcProvider } from "y-webrtc";
 // const provider = new WebrtcProvider("syncedstore-board-5", doc);

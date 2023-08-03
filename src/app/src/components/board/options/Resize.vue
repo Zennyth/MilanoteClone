@@ -3,8 +3,10 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, inject, computed, watch } from 'vue'
+
 import { useDrag } from '@/composables/drag'
+import { boardStoreKey } from '@/keys'
 
 const resize = ref(null)
 const props = defineProps(['modelValue', 'anchor'])
@@ -19,27 +21,21 @@ const component = computed({
   }
 })
 
-const snapToGrid = ref(true)
-const snapSettings = ref({
-  gridSize: 22
-})
-function snapValueToGrid(val, gridSize) {
-  var snap_candidate = gridSize * Math.round(val / gridSize)
-  if (val - snap_candidate < 2) {
-    return snap_candidate
-  } else {
-    return null
-  }
-}
+const boardStore = inject(boardStoreKey)
 
 const { isDragging } = useDrag(resize, (event) => {
-  component.value.width = event.clientX - component.value.left
-  component.value.height = event.clientY - component.value.top
-
-  if (snapToGrid.value) {
-    component.value.width = snapValueToGrid(component.value.width, snapSettings.value.gridSize)
-    component.value.height = snapValueToGrid(component.value.height, snapSettings.value.gridSize)
+  const relative = {
+    x: event.clientX - boardStore.board.getBoundingClientRect().left,
+    y: event.clientY - boardStore.board.getBoundingClientRect().top
   }
+
+
+  component.value.width = boardStore.computeSnapValue(relative.x - component.value.left)
+  component.value.height = boardStore.computeSnapValue(relative.y - component.value.top)
+})
+
+watch(isDragging, () => {
+  component.value.isDraggable = !isDragging.value;
 })
 
 const style = computed(() => ({

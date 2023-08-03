@@ -1,6 +1,8 @@
 <template>
-  <img :src="component.src" draggable="false" />
-  <Resize v-model="component" />
+  <div class="component-container">
+    <img :src="component.src" draggable="false" />
+    <Resize v-model="component" />
+  </div>
 </template>
     
 <script setup>

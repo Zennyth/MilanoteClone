@@ -13,14 +13,15 @@ export const useBoardStore = defineStore("boardStore", {
       provider: null,
       doc: null,
       store: null
-    }
+    },
+    board: null
   }),
   getters: {
     computeSnapValue: (state) => (value) => state.settings.snap.enabled ? snapValueToGrid(value, state.settings.snap.gridSize) : value,
   },
   actions: {
-    openBoard(id) {
-      
-    }
+    openBoard(board, id) {
+      this.board = board;
+    },
   },
 });

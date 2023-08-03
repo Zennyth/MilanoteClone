@@ -40,12 +40,16 @@ const style = computed(() => ({
 }))
 
 function componentMousedown(event) {
-  emit('componentMousedown', event, component);
+  emit('componentMousedown', event, component)
 }
 </script>
 
 <style lang="scss">
 .board-component {
   position: relative;
+}
+
+.component-container {
+  display: flex;
 }
 </style>
