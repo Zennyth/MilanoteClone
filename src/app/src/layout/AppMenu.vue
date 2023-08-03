@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue'
-import boardEventBus from '@/events/boardEventBus'
+// import boardEventBus from '@/events/boardEventBus'
 
 import AppMenuItem from './AppMenuItem.vue'
 
@@ -9,7 +9,7 @@ const model = ref([
   {
     label: 'UI Components',
     items: [
-      { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', command: () => boardEventBus.$emit("addComponent") },
+      { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', command: () => {} },
       { label: 'Input', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
       { label: 'Float Label', icon: 'pi pi-fw pi-bookmark', to: '/uikit/floatlabel' },
       { label: 'Invalid State', icon: 'pi pi-fw pi-exclamation-circle', to: '/uikit/invalidstate' },

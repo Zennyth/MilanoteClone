@@ -1,78 +1,130 @@
 <template>
-  <div 
-    class="board" 
-    @mousemove="$event => move($event, store.components[index])"
-    @mouseup="$event => stopDrag($event, store.components[index])" 
+  <div
+    class="board"
+    ref="board"
+    @mousemove="($event) => move($event, store.components[index])"
+    @mouseup="($event) => stopDrag($event, store.components[index])"
     @click.right="addComponent"
   >
-    <component
+    <BoardComponent
       v-for="(component, index) in store.components"
-      :is="component.type"
       :key="component.id"
       v-model="store.components[index]"
-
-      @mousedown="$event => startDrag($event, store.components[index])" 
-      
-      :class="{
-        'draggable': !isDragging,
-        'dragging': isDragging
-      }"
+      :is-dragging="clickState.isDragging"
+      @mousedown="($event) => startDrag($event, component)"
     >
-    </component>
+    </BoardComponent>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { store } from '@/services/syncedstore'
+import BoardComponent from './BoardComponent.vue'
+
+const board = ref(null)
+const snapToGrid = ref(true)
+const snapSettings = ref({
+  gridSize: 22
+})
+function snapValueToGrid(val, gridSize) {
+  var snap_candidate = gridSize * Math.floor(val / gridSize)
+  if (val - snap_candidate < 2) {
+    return snap_candidate
+  } else {
+    return null
+  }
+}
 
 function addComponent(event) {
   event.preventDefault()
 
   store.components.push({
     id: Date.now(),
-    type: 'EditorBoard',
+    type: 'ImageBoard',
     top: event.pageY,
     left: event.pageX,
-    text: ""
+    src: 'https://i.pinimg.com/564x/c5/ba/1a/c5ba1ad1bc19880c8f756ed73c9b89d3.jpg'
   })
 }
 
-const drag = ref({
+onMounted(() => {
+  store.components.forEach((c) => {
+    c.isSelected = false
+    c.isDragged = false
+  })
+})
+
+const clickState = ref({
+  isEvent: false,
   target: null,
-  offset: {top: 0, left: 0},
+  offset: { top: 0, left: 0 },
+
+  isSelected: false,
+
   isDragging: false,
-  timeout: null,
+  hasMoved: false,
+  timeout: null
 })
 
 const startDrag = (event, component) => {
-  drag.value.timeout = setTimeout(() => {
-    drag.value.isDragging = true;
-    drag.value.target = component;
-    drag.value.offset.top = event.clientY - component.top;
-    drag.value.offset.left = event.clientX - component.left;
-    drag.value.timeout = null;
-    event.preventDefault();
-  }, 100);
+  clickState.value.hasMoved = false
+  clickState.value.target = component
+  clickState.value.isEvent = true
+
+  clickState.value.timeout = setTimeout(() => {
+    clickState.value.isDragging = true
+    clickState.value.target.isDragged = true
+    clickState.value.offset.top = event.clientY - component.top
+    clickState.value.offset.left = event.clientX - component.left
+    clickState.value.timeout = null
+
+    event.preventDefault()
+  }, 100)
 }
 
 const move = (event) => {
-  if(!drag.value.isDragging)
-    return;
-  
-  drag.value.target.left = event.clientX - drag.value.offset.left;
-  drag.value.target.top = event.clientY - drag.value.offset.top;
+  if (!clickState.value.isDragging) return
+
+  clickState.value.target.left = event.clientX - clickState.value.offset.left
+  clickState.value.target.top = event.clientY - clickState.value.offset.top
+
+  if (snapToGrid.value) {
+    clickState.value.target.left = snapValueToGrid(clickState.value.target.left, snapSettings.value.gridSize);
+    clickState.value.target.top = snapValueToGrid(clickState.value.target.top, snapSettings.value.gridSize);
+  }
+
+  clickState.value.hasMoved = true
 }
 
 const stopDrag = (event) => {
-  if(drag.value.timeout !== null) {
-    clearTimeout(drag.value.timeout);
-    return;
+  clickState.value.isDragging = false
+  if (clickState.value.target !== null) {
+    clickState.value.target.isDragged = false
   }
 
-  drag.value.isDragging = false;
-  drag.value.target = null;
-  event.preventDefault();
+  if (!clickState.value.isEvent) {
+    if (clickState.value.target !== null) {
+      clickState.value.target.isSelected = false
+    }
+
+    clickState.value.target = null
+    clickState.value.hasMoved = false
+    return
+  }
+
+  clickState.value.isEvent = false
+  clearTimeout(clickState.value.timeout)
+
+  event.preventDefault()
+
+  if (!clickState.value.hasMoved) {
+    clickState.value.isSelected = true
+    clickState.value.target.isSelected = true
+    return
+  }
+
+  clickState.value.target = null
 }
 </script>
 

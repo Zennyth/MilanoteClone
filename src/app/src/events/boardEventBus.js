@@ -1,5 +1,5 @@
-import { Vue } from "vue"
+// import { Vue } from "vue"
 
-const boardEventBus = new Vue();
+// const boardEventBus = new Vue();
 
-export default boardEventBus;
+// export default boardEventBus;

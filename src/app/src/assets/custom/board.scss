@@ -3,12 +3,22 @@ $dot-size: 1px;
 $dot-space: 22px;
 
 .board {
-  width: 100vw;
-  height: 100vh;
+  min-width: 100%;
+  min-height: 100%;
   position: absolute;
   top: 0;
   left: 0;
   background: linear-gradient(90deg, var(--surface-card) 21px, transparent 1%) center, linear-gradient(var(--surface-card) 21px, transparent 1%) center, #a799cc;
-	background-size: $dot-space $dot-space;
+  background-size: $dot-space $dot-space;
   background-position: 0 0, 50px 50px;
+  overflow: hidden;
+
+  &-component {
+    display: flex;
+
+    &.selected {
+      outline: 2px solid black;
+      outline-offset: -2px;
+    }
+  }
 }
