@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="boardComponent"
     class="board-component"
     :class="{
       draggable: !props.isDragging,
@@ -17,10 +18,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps(['modelValue', 'isDragging'])
 const emit = defineEmits(['update:modelValue', 'componentMousedown'])
+const boardComponent = ref(null)
+const DISTANCE_THRESHOLD_TRANSFORM = 5
 
 const component = computed({
   get() {
@@ -42,6 +45,41 @@ const style = computed(() => ({
 function componentMousedown(event) {
   emit('componentMousedown', event, component)
 }
+
+watch(
+  () => component.value.isDragged,
+  () => {
+    if (component.value.isDragged) {
+      return
+    }
+
+    boardComponent.value.style.transform = ''
+  }
+)
+
+watch([() => component.value.left, () => component.value.top], ([newX, newY], [oldX, oldY]) => {
+  if (!component.value.isDragged) {
+    return
+  }
+
+  const velocity = { x: newX - oldX, y: newY - oldY }
+  const distance = Math.sqrt(velocity.x ** 2 + velocity.y ** 2)
+  component.value.velocity = velocity
+
+  if (distance < DISTANCE_THRESHOLD_TRANSFORM) {
+    boardComponent.value.style.transform = ''
+    return
+  }
+
+  boardComponent.value.style.transform = `
+    rotate3d(
+      ${-velocity.y},
+      ${velocity.x},
+      0,
+      ${Math.log(distance) * 2}deg
+    )
+  `
+})
 </script>
 
 <style lang="scss">

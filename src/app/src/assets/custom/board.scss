@@ -8,13 +8,25 @@ $dot-space: 22px;
   position: absolute;
   top: 0;
   left: 0;
-  background: linear-gradient(90deg, var(--surface-card) 21px, transparent 1%) center, linear-gradient(var(--surface-card) 21px, transparent 1%) center, #a799cc;
+  background: linear-gradient(90deg, var(--surface-card) 21px, transparent 1%) center,
+    linear-gradient(var(--surface-card) 21px, transparent 1%) center, #a799cc;
   background-size: $dot-space $dot-space;
   background-position: 0 0, 22px 22px;
   overflow: hidden;
+  perspective: 1500px;
 
   &-component {
     display: flex;
+
+    transition-duration: 300ms;
+    transition-property: transform, box-shadow;
+    transition-timing-function: ease-out;
+    transform: rotate3d(0);
+
+    &.dragged {
+      transition-duration: 150ms;
+      box-shadow: 0 5px 20px 5px #00000044;
+    }
 
     &.selected {
       outline: 2px solid black;

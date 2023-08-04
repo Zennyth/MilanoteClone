@@ -2,8 +2,8 @@
   <div
     class="board"
     ref="board"
-    @mousemove="($event) => move($event)"
-    @mouseup="($event) => stopDrag($event)"
+    @mousemove="mousemove"
+    @mouseup="mouseup"
     @click.right="addComponent"
   >
     <BoardComponent
@@ -11,7 +11,7 @@
       :key="component.id"
       v-model="store.components[index]"
       :is-dragging="clickState.isDragging"
-      @component-mousedown="startDrag"
+      @component-mousedown="mousedown"
     >
     </BoardComponent>
   </div>
@@ -22,7 +22,7 @@ import { ref, inject, onMounted, unref } from 'vue'
 import { store } from '@/services/syncedstore'
 import { boardStoreKey } from '@/keys'
 
-import BoardComponent from '@/components/board/BoardComponent.vue';
+import BoardComponent from '@/components/board/BoardComponent.vue'
 
 const board = ref(null)
 const boardStore = inject(boardStoreKey)
@@ -40,7 +40,7 @@ function addComponent(event) {
 }
 
 onMounted(() => {
-  boardStore.openBoard(board);
+  boardStore.openBoard(board)
 
   store.components.forEach((c) => {
     c.isSelected = false
@@ -60,42 +60,41 @@ const clickState = {
   timeout: null
 }
 
-const startDrag = (event, component) => {
-  clickState.hasMoved = false;
-  clickState.target = component;
-  clickState.isEvent = true;
+const mousedown = (event, component) => {
+  clickState.hasMoved = false
+  clickState.target = component
+  clickState.isEvent = true
 
   clickState.timeout = setTimeout(() => {
-    if(clickState.target.value.isDraggable === false) {
-      return;
+    if (clickState.target.value.isDraggable === false) {
+      return
     }
 
-    clickState.isDragging = true;
-    clickState.target.value.isDragged = true;
-    clickState.offset.top = event.clientY - clickState.target.value.top;
-    clickState.offset.left = event.clientX - clickState.target.value.left;
-    clickState.timeout = null;
+    clickState.isDragging = true
+    clickState.target.value.isDragged = true
+    clickState.offset.top = event.clientY - clickState.target.value.top
+    clickState.offset.left = event.clientX - clickState.target.value.left
+    clickState.timeout = null
 
-    event.preventDefault();
+    event.preventDefault()
   }, 100)
 }
 
-const move = (event) => {
+const mousemove = (event) => {
   if (!clickState.isDragging) return
 
-  clickState.target.value.left = boardStore.computeSnapValue(
-    event.clientX - clickState.offset.left
-  )
-  clickState.target.value.top = boardStore.computeSnapValue(
-    event.clientY - clickState.offset.top
-  )
+  clickState.target.value.left = event.clientX - clickState.offset.left
+  clickState.target.value.top = event.clientY - clickState.offset.top
   clickState.hasMoved = true
 }
 
-const stopDrag = (event) => {
+const mouseup = (event) => {
   clickState.isDragging = false
   if (clickState.target !== null && clickState.target.value !== null) {
     clickState.target.value.isDragged = false
+
+    clickState.target.value.left = boardStore.computeSnapValue(clickState.target.value.left)
+    clickState.target.value.top = boardStore.computeSnapValue(clickState.target.value.top)
   }
 
   if (!clickState.isEvent) {
@@ -122,5 +121,4 @@ const stopDrag = (event) => {
 }
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>
