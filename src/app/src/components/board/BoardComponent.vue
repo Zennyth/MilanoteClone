@@ -12,20 +12,21 @@
     <component
       :is="component.type"
       v-model="component"
-      @mousedown="($event) => componentMousedown($event, component)"
+      @mousedown="componentMousedown"
     />
   </div>
 </template>
 
-<script setup>
-import { computed, ref, watch } from 'vue'
+<script lang="ts" setup>
+import { Ref, StyleValue, computed, ref, watch } from 'vue'
+import { BoardComponentData } from './types'
 
 const props = defineProps(['modelValue', 'isDragging'])
 const emit = defineEmits(['update:modelValue', 'componentMousedown'])
-const boardComponent = ref(null)
+const boardComponent = ref<HTMLDivElement>()
 const DISTANCE_THRESHOLD_TRANSFORM = 5
 
-const component = computed({
+const component: Ref<BoardComponentData> = computed({
   get() {
     return props.modelValue
   },
@@ -34,16 +35,16 @@ const component = computed({
   }
 })
 
-const style = computed(() => ({
+const style: Ref<StyleValue> = computed(() => ({
   position: 'absolute',
-  top: component.value.top + 'px',
-  left: component.value.left + 'px',
-  with: component.value.with + 'px',
-  height: component.value.height + 'px'
+  left: component.value.position.x + 'px',
+  top: component.value.position.y + 'px',
+  with: component.value.size.x !== 0 ? `${component.value.size.x}px` : '',
+  height: component.value.size.y !== 0 ? `${component.value.size.y}px` : ''
 }))
 
-function componentMousedown(event) {
-  emit('componentMousedown', event, component)
+function componentMousedown(event: MouseEvent) {
+  emit('componentMousedown', event, component.value)
 }
 
 watch(
@@ -53,11 +54,11 @@ watch(
       return
     }
 
-    boardComponent.value.style.transform = ''
+    boardComponent.value!.style.transform = ''
   }
 )
 
-watch([() => component.value.left, () => component.value.top], ([newX, newY], [oldX, oldY]) => {
+watch([() => component.value.position.x, () => component.value.position.y], ([newX, newY], [oldX, oldY]) => {
   if (!component.value.isDragged) {
     return
   }
@@ -67,11 +68,11 @@ watch([() => component.value.left, () => component.value.top], ([newX, newY], [o
   component.value.velocity = velocity
 
   if (distance < DISTANCE_THRESHOLD_TRANSFORM) {
-    boardComponent.value.style.transform = ''
+    boardComponent.value!.style.transform = ''
     return
   }
 
-  boardComponent.value.style.transform = `
+  boardComponent.value!.style.transform = `
     rotate3d(
       ${-velocity.y},
       ${velocity.x},

@@ -1,3 +1,5 @@
+import { App, Plugin } from 'vue';
+
 // import 'primevue/resources/primevue.min.css';
 // import 'primeflex/primeflex.css';
 // import 'primeicons/primeicons.css';
@@ -89,8 +91,8 @@ import Editor from 'primevue/editor';
 
 // import locale from '@/i18n/locales/fr.local.json'
 
-export default {
-    install(app) {
+export const PrimevuePlugin: Plugin = {
+    install(app: App) {
 
         app.use(PrimeVue, {
             ripple: true,

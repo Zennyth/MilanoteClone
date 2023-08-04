@@ -4,120 +4,97 @@
     ref="board"
     @mousemove="mousemove"
     @mouseup="mouseup"
-    @click.right="addComponent"
+    @click.right="rightClick"
   >
     <BoardComponent
-      v-for="(component, index) in store.components"
+      v-for="(component, index) in components"
       :key="component.id"
-      v-model="store.components[index]"
-      :is-dragging="clickState.isDragging"
+      v-model="components[index]"
+      :is-dragging="interaction.isDragging"
       @component-mousedown="mousedown"
     >
     </BoardComponent>
   </div>
 </template>
 
-<script setup>
-import { ref, inject, onMounted, unref } from 'vue'
-import { store } from '@/services/syncedstore'
-import { boardStoreKey } from '@/keys'
+<script lang="ts" setup>
+import { ref, onMounted } from 'vue'
 
 import BoardComponent from '@/components/board/BoardComponent.vue'
+import { useBoardStore } from '@/store/modules/boardStore'
+import { BoardComponentData, createDefaultComponent } from './types'
+import { storeToRefs } from 'pinia'
 
-const board = ref(null)
-const boardStore = inject(boardStoreKey)
+const board = ref<HTMLDivElement>()
+const boardStore = useBoardStore()
+const { interaction } = boardStore
+const { components } = storeToRefs(boardStore)
 
-function addComponent(event) {
+function rightClick(event: MouseEvent) {
   event.preventDefault()
 
-  store.components.push({
-    id: Date.now(),
-    type: 'ImageBoard',
-    top: event.pageY,
-    left: event.pageX,
-    src: 'https://i.pinimg.com/564x/c5/ba/1a/c5ba1ad1bc19880c8f756ed73c9b89d3.jpg'
-  })
+  boardStore.addComponent(createDefaultComponent('ImageBoard', event.pageY, event.pageX))
+  // src: 'https://i.pinimg.com/564x/c5/ba/1a/c5ba1ad1bc19880c8f756ed73c9b89d3.jpg'
 }
 
 onMounted(() => {
-  boardStore.openBoard(board)
-
-  store.components.forEach((c) => {
-    c.isSelected = false
-    c.isDragged = false
-  })
+  boardStore.openBoard(board.value, '')
 })
 
-const clickState = {
-  isEvent: false,
-  target: null,
-  offset: { top: 0, left: 0 },
+const mousedown = (event: MouseEvent, component: BoardComponentData) => {
+  interaction.hasMoved = false
+  interaction.target = component
+  interaction.isEvent = true
 
-  isSelected: false,
-
-  isDragging: false,
-  hasMoved: false,
-  timeout: null
-}
-
-const mousedown = (event, component) => {
-  clickState.hasMoved = false
-  clickState.target = component
-  clickState.isEvent = true
-
-  clickState.timeout = setTimeout(() => {
-    if (clickState.target.value.isDraggable === false) {
+  interaction.timeout = setTimeout(() => {
+    if (component.isDraggable === false) {
       return
     }
 
-    clickState.isDragging = true
-    clickState.target.value.isDragged = true
-    clickState.offset.top = event.clientY - clickState.target.value.top
-    clickState.offset.left = event.clientX - clickState.target.value.left
-    clickState.timeout = null
+    interaction.isDragging = true
+    component.isDragged = true
+    interaction.offset.x = event.clientX - component.position.x
+    interaction.offset.y = event.clientY - component.position.y
+    interaction.timeout = undefined
 
     event.preventDefault()
   }, 100)
 }
 
-const mousemove = (event) => {
-  if (!clickState.isDragging) return
+const mousemove = (event: MouseEvent) => {
+  if (!interaction.isDragging || interaction.target === undefined) return
 
-  clickState.target.value.left = event.clientX - clickState.offset.left
-  clickState.target.value.top = event.clientY - clickState.offset.top
-  clickState.hasMoved = true
+  interaction.target!.position.x = event.clientX - interaction.offset.x
+  interaction.target!.position.y = event.clientY - interaction.offset.y
+  interaction.hasMoved = true
 }
 
-const mouseup = (event) => {
-  clickState.isDragging = false
-  if (clickState.target !== null && clickState.target.value !== null) {
-    clickState.target.value.isDragged = false
+const mouseup = (event: MouseEvent) => {
+  interaction.isDragging = false
 
-    clickState.target.value.left = boardStore.computeSnapValue(clickState.target.value.left)
-    clickState.target.value.top = boardStore.computeSnapValue(clickState.target.value.top)
+  if (interaction.target !== undefined) {
+    interaction.target!.isDragged = false
+    interaction.target!.position = boardStore.snapVector2(interaction.target!.position)
   }
 
-  if (!clickState.isEvent) {
-    if (clickState.target !== null && clickState.target.value !== null) {
-      clickState.target.value.isSelected = false
+  if (!interaction.isEvent) {
+    if (interaction.target !== undefined) {
+      interaction.target!.isSelected = false
     }
-
-    clickState.hasMoved = false
+    interaction.hasMoved = false
     return
   }
 
-  clickState.isEvent = false
-  clearTimeout(clickState.timeout)
-
+  interaction.isEvent = false
+  clearTimeout(interaction.timeout)
   event.preventDefault()
 
-  if (!clickState.hasMoved) {
-    clickState.isSelected = true
-    clickState.target.value.isSelected = true
+  if (!interaction.hasMoved) {
+    interaction.isSelected = true
+    interaction.target!.isSelected = true
     return
   }
-
-  unref(clickState.target)
+  interaction.target = undefined
 }
 </script>
 
