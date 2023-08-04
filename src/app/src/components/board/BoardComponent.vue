@@ -1,24 +1,15 @@
 <template>
-  <div
-    ref="boardComponent"
-    class="board-component"
-    :class="{
-      draggable: !props.isDragging,
-      dragged: component.isDragged,
-      selected: component.isSelected
-    }"
-    :style="style"
-  >
-    <component
-      :is="component.type"
-      v-model="component"
-      @mousedown="componentMousedown"
-    />
+  <div ref="boardComponent" class="board-component" :class="{
+    draggable: !props.isDragging,
+    dragged: component.isDragged,
+    selected: component.isSelected
+  }" :style="style">
+    <component :is="component.type" v-model="component" @mousedown="componentMousedown" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { Ref, StyleValue, computed, ref, watch } from 'vue'
+import { Ref, StyleValue, computed, onUpdated, ref, watch } from 'vue'
 import { BoardComponentData } from './types'
 
 const props = defineProps(['modelValue', 'isDragging'])
@@ -31,6 +22,7 @@ const component: Ref<BoardComponentData> = computed({
     return props.modelValue
   },
   set(value) {
+    console.log(value)
     emit('update:modelValue', value)
   }
 })
@@ -80,6 +72,21 @@ watch([() => component.value.position.x, () => component.value.position.y], ([ne
       ${Math.log(distance) * 2}deg
     )
   `
+})
+
+// const width = computed(() => {
+//   return boardComponent.value?.clientWidth;
+// })
+
+
+onUpdated(async () => {
+  if (component.value.size.x === 0 || component.value.size.y === 0) {
+    const rect = boardComponent.value!.getBoundingClientRect();
+
+    component.value.size.x = rect.width;
+    component.value.size.y = rect.height;
+    console.log(props.modelValue.size.x, component.value.size.y)
+  }
 })
 </script>
 

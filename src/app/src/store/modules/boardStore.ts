@@ -1,10 +1,10 @@
 import { Ref } from 'vue'
 import { defineStore } from 'pinia'
-import { snapValueToGrid } from '@/utils/grid'
+import { getBoundingBox, snapValueToGrid } from '@/utils/grid'
 
 import { syncedStore, getYjsDoc } from '@syncedstore/core'
 import { WebsocketProvider } from 'y-websocket'
-import { BoardComponentData, Vector2 } from '@/components/board/types'
+import { BoardComponentData, Shape, Vector2 } from '@/components/board/types'
 
 interface SnapSettings {
   enabled: boolean
@@ -77,6 +77,9 @@ export const useBoardStore = defineStore('boardStore', {
     },
     components(): Array<BoardComponentData> {
       return this.board !== undefined ? this.sync.store.components : []
+    },
+    getComponentsBoundingClientRect(): Shape {
+      return getBoundingBox(this.components);
     }
   },
   actions: {

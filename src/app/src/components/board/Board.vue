@@ -1,34 +1,30 @@
 <template>
-  <div
-    class="board"
-    ref="board"
-    @mousemove="mousemove"
-    @mouseup="mouseup"
-    @click.right="rightClick"
-  >
-    <BoardComponent
-      v-for="(component, index) in components"
-      :key="component.id"
-      v-model="components[index]"
-      :is-dragging="interaction.isDragging"
-      @component-mousedown="mousedown"
-    >
+  <div class="board" ref="board" @mousemove="mousemove" @mouseup="mouseup" @click.right="rightClick" :style="style">
+    <BoardComponent v-for="(component, index) in components" :key="component.id" v-model="components[index]"
+      :is-dragging="interaction.isDragging" @component-mousedown="mousedown">
     </BoardComponent>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch, Ref, StyleValue } from 'vue'
 
 import BoardComponent from '@/components/board/BoardComponent.vue'
 import { useBoardStore } from '@/store/modules/boardStore'
-import { BoardComponentData, createDefaultComponent } from './types'
+import { BoardComponentData, Shape, createDefaultComponent } from './types'
 import { storeToRefs } from 'pinia'
+import { getBoundingBox } from '@/utils/grid'
 
 const board = ref<HTMLDivElement>()
 const boardStore = useBoardStore()
-const { interaction } = boardStore
+const { interaction, openBoard } = boardStore
 const { components } = storeToRefs(boardStore)
+
+
+watch(() => components.value, () => {
+  boundingBox.value = getBoundingBox(components.value);
+}, { deep: true })
+const boundingBox: Ref<Shape> = ref({ position: { x: 0, y: 0 }, size: { x: 0, y: 0 }, rotation: 0 });
 
 function rightClick(event: MouseEvent) {
   event.preventDefault()
@@ -38,7 +34,7 @@ function rightClick(event: MouseEvent) {
 }
 
 onMounted(() => {
-  boardStore.openBoard(board.value, '')
+  openBoard(board.value, '')
 })
 
 const mousedown = (event: MouseEvent, component: BoardComponentData) => {
@@ -96,6 +92,11 @@ const mouseup = (event: MouseEvent) => {
   }
   interaction.target = undefined
 }
+
+const style: Ref<StyleValue> = computed(() => ({
+  with: boundingBox.value.size.x !== 0 ? `${boundingBox.value.size.x}px` : '',
+  height: boundingBox.value.size.y !== 0 ? `${boundingBox.value.size.y}px` : ''
+}))
 </script>
 
 <style lang="scss"></style>

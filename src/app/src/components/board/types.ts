@@ -3,12 +3,14 @@ export interface Vector2 {
   y: number
 }
 
-export interface BoardComponentData {
-  id: string
+export interface Shape {
+  size: Vector2;
+  position: Vector2;
+  rotation: number;
+}
 
-  // css
-  position: Vector2
-  size: Vector2
+export interface BoardComponentData extends Shape {
+  id: string
 
   // state
   type: string
@@ -16,6 +18,8 @@ export interface BoardComponentData {
   isDragged: boolean
   isSelected: boolean
   velocity: Vector2
+
+  [propName: string]: any
 }
 
 export function createDefaultComponent(
@@ -27,6 +31,7 @@ export function createDefaultComponent(
     id: Date.now().toString(),
     position: { x: left, y: top },
     size: { x: 0, y: 0 },
+    rotation: 0,
     type,
     isDraggable: true,
     isDragged: false,

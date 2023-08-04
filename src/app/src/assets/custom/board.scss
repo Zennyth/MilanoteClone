@@ -2,10 +2,68 @@
 $dot-size: 1px;
 $dot-space: 22px;
 
+.layout-main {
+  display: flex;
+}
+
+main {
+  
+}
+
+.canvas {
+
+  &-section,
+  &-viewport {
+    
+    display: flex;
+  }
+
+  &-viewport {
+    --scroll-size: 6px;
+    --scroll-radius: 10px;
+
+    -webkit-overflow-scrolling: touch;
+    -webkit-touch-callout: none;
+    overflow-x: hidden;
+    overflow-x: auto;
+    overflow-y: auto;
+    -ms-touch-action: pan-x pan-y;
+    touch-action: pan-x pan-y;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: grab;
+    overflow: auto;
+
+    &::-webkit-scrollbar-thumb {
+      background-color: var(--surface-900);
+      border-radius: var(--scroll-radius);
+    }
+
+    &::-webkit-scrollbar-track , &::-webkit-scrollbar-corner{
+      background-color: white;
+      border-radius: var(--scroll-radius);
+    }
+
+    &::-webkit-scrollbar {
+      width: var(--scroll-size, 10px);
+      height: var(--scroll-size, 10px);
+      background-color: transparent;
+    }
+  }
+
+  &-scroll-area {
+    min-height: 100%;
+    min-width: 100%;
+    overflow: hidden;
+  }
+}
+
 .board {
   min-width: 100%;
   min-height: 100%;
-  position: absolute;
+  position: relative;
   top: 0;
   left: 0;
   background: linear-gradient(90deg, var(--surface-card) 21px, transparent 1%) center,
