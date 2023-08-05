@@ -70,3 +70,12 @@ export function getBoundingBox(shapes: Array<Shape>): Shape {
     rotation: 0
   };
 }
+
+export function rectanglesIntersect(r1: Shape, r2: Shape): boolean {
+	const aLeftOfB: boolean = r1.position.x + r1.size.x < r2.position.x;
+	const aRightOfB: boolean = r1.position.x > r2.position.x + r2.size.x;
+	const aBelowB: boolean = r1.position.y + r1.size.y < r2.position.y;
+	const aAboveB: boolean = r1.position.y > r2.position.y + r2.size.y;
+
+	return !( aLeftOfB || aRightOfB || aAboveB || aBelowB );
+}

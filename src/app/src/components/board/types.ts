@@ -17,6 +17,7 @@ export interface BoardComponentData extends Shape {
   isDraggable: boolean
   isDragged: boolean
   isSelected: boolean
+	isInContainer: boolean
   velocity: Vector2
 
   [propName: string]: any
@@ -29,13 +30,16 @@ export function createDefaultComponent(
 ): BoardComponentData {
   return {
     id: Date.now().toString(),
+
     position: { x: left, y: top },
     size: { x: 0, y: 0 },
     rotation: 0,
+
     type,
     isDraggable: true,
     isDragged: false,
     isSelected: false,
-    velocity: { x: 0, y: 0 }
+		isInContainer: false,
+    velocity: { x: 0, y: 0 },
   }
 }

@@ -22,21 +22,20 @@ const component: Ref<BoardComponentData> = computed({
     return props.modelValue
   },
   set(value) {
-    console.log(value)
     emit('update:modelValue', value)
   }
 })
 
 const style: Ref<StyleValue> = computed(() => ({
-  position: 'absolute',
-  left: component.value.position.x + 'px',
-  top: component.value.position.y + 'px',
-  with: component.value.size.x !== 0 ? `${component.value.size.x}px` : '',
-  height: component.value.size.y !== 0 ? `${component.value.size.y}px` : ''
+  position: component.value.isInContainer ? 'inherit' : 'absolute',
+  left: !component.value.isInContainer ? `${component.value.position.x}px` : '',
+  top: !component.value.isInContainer ? `${component.value.position.y}px` : '',
+  width: component.value.size.x !== 0 && !component.value.isInContainer ? `${component.value.size.x}px` : '',
+  height: component.value.size.y !== 0 && !component.value.isInContainer? `${component.value.size.y}px` : ''
 }))
 
-function componentMousedown(event: MouseEvent) {
-  emit('componentMousedown', event, component.value)
+function componentMousedown(event: MouseEvent, target: BoardComponentData = component.value) {
+  emit('componentMousedown', event, target)
 }
 
 watch(
@@ -50,7 +49,7 @@ watch(
   }
 )
 
-watch([() => component.value.position.x, () => component.value.position.y], ([newX, newY], [oldX, oldY]) => {
+watch([() => component.value?.position?.x, () => component.value?.position?.y], ([newX, newY], [oldX, oldY]) => {
   if (!component.value.isDragged) {
     return
   }
@@ -74,18 +73,15 @@ watch([() => component.value.position.x, () => component.value.position.y], ([ne
   `
 })
 
-// const width = computed(() => {
-//   return boardComponent.value?.clientWidth;
-// })
-
-
 onUpdated(async () => {
   if (component.value.size.x === 0 || component.value.size.y === 0) {
     const rect = boardComponent.value!.getBoundingClientRect();
 
+    if (rect.width === 0 && rect.height === 0)
+      return;
+
     component.value.size.x = rect.width;
     component.value.size.y = rect.height;
-    console.log(props.modelValue.size.x, component.value.size.y)
   }
 })
 </script>
@@ -97,5 +93,13 @@ onUpdated(async () => {
 
 .component-container {
   display: flex;
+  height: 100%;
+  width: 100%;
+
+  >div,
+  img {
+    height: 100%;
+    width: 100%;
+  }
 }
 </style>

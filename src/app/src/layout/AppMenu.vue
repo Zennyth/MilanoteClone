@@ -1,42 +1,39 @@
-<script setup>
-import { ref } from 'vue'
-// import boardEventBus from '@/events/boardEventBus'
+<template>
+	<ul class="layout-menu">
+		<template v-for="(item, i) in model" :key="item">
+			<app-menu-item v-if="!item.separator" :item="item" :index="i"></app-menu-item>
+			<li v-if="item.separator" class="menu-separator"></li>
+		</template>
+	</ul>
+</template>
+
+<script lang="ts" setup>
+import { onMounted, ref } from 'vue'
+import { useBoardStore } from '@/store/modules/boardStore'
+import { boardPlugin } from '@/plugins/board'
+import { createDefaultComponent } from '@/components/board/types'
+
+const { addComponent } = useBoardStore();
 
 import AppMenuItem from './AppMenuItem.vue'
 
-
 const model = ref([
-  {
-    label: 'UI Components',
-    items: [
-      { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', command: () => {} },
-      { label: 'Input', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
-      { label: 'Float Label', icon: 'pi pi-fw pi-bookmark', to: '/uikit/floatlabel' },
-      { label: 'Invalid State', icon: 'pi pi-fw pi-exclamation-circle', to: '/uikit/invalidstate' },
-      { label: 'Button', icon: 'pi pi-fw pi-mobile', to: '/uikit/button', class: 'rotated-icon' },
-      { label: 'Table', icon: 'pi pi-fw pi-table', to: '/uikit/table' },
-      { label: 'List', icon: 'pi pi-fw pi-list', to: '/uikit/list' },
-      { label: 'Tree', icon: 'pi pi-fw pi-share-alt', to: '/uikit/tree' },
-      { label: 'Panel', icon: 'pi pi-fw pi-tablet', to: '/uikit/panel' },
-      { label: 'Overlay', icon: 'pi pi-fw pi-clone', to: '/uikit/overlay' },
-      { label: 'Media', icon: 'pi pi-fw pi-image', to: '/uikit/media' },
-      { label: 'Menu', icon: 'pi pi-fw pi-bars', to: '/uikit/menu', preventExact: true },
-      { label: 'Message', icon: 'pi pi-fw pi-comment', to: '/uikit/message' },
-      { label: 'File', icon: 'pi pi-fw pi-file', to: '/uikit/file' },
-      { label: 'Chart', icon: 'pi pi-fw pi-chart-bar', to: '/uikit/charts' },
-      { label: 'Misc', icon: 'pi pi-fw pi-circle', to: '/uikit/misc' }
-    ]
-  },
+		{
+		// label: 'Components',
+		separator: undefined,
+		
+		items: [
+			{ icon: '', command: () => { } },
+		]
+	},
 ])
-</script>
 
-<template>
-  <ul class="layout-menu">
-    <template v-for="(item, i) in model" :key="item">
-      <app-menu-item v-if="!item.separator" :item="item" :index="i"></app-menu-item>
-      <li v-if="item.separator" class="menu-separator"></li>
-    </template>
-  </ul>
-</template>
+onMounted(() => {
+	model.value[0].items = boardPlugin.components.map(r => ({
+		icon: r.icon,
+		command: () => addComponent(createDefaultComponent(r.name, 50, 50))
+	}))
+})
+</script>
 
 <style lang="scss" scoped></style>

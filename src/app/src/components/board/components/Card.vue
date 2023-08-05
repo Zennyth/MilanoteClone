@@ -1,23 +1,26 @@
 <template>
-  <Card 
-    :style="style" 
-  >
-    <template #title> {{ component.title }} </template>
-    <template #content>
-      <p>
-        {{ component.paragraph }}
-      </p>
-    </template>
-  </Card>
+  <div class="component-container">
+    <Card>
+      <template #title> {{ component.title }} </template>
+      <template #content>
+        <p>
+          {{ component.paragraph }}
+        </p>
+      </template>
+    </Card>
+    <Resize v-model="component" />
+  </div>
 </template>
 
-<script setup>
-import { computed } from 'vue'
+<script lang="ts" setup>
+import Resize from '../options/Resize.vue';
+import { computed, Ref } from 'vue'
+import { BoardComponentData } from '../types';
 
 const props = defineProps(['modelValue'])
 const emit = defineEmits(['update:modelValue'])
 
-const component = computed({
+const component: Ref<BoardComponentData> = computed({
   get() {
     return props.modelValue
   },
@@ -25,10 +28,4 @@ const component = computed({
     emit('update:modelValue', value)
   }
 })
-
-const style = computed(() => ({
-  position: 'absolute',
-  top: component.value.top + 'px',
-  left: component.value.left + 'px'
-}));
 </script>

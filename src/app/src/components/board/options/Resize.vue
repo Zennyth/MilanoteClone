@@ -40,7 +40,7 @@ const { isDragging } = useDrag({
       x: event.clientX - (board.value?.getBoundingClientRect().left ?? 0) - component.value.position.x,
       y: event.clientY - (board.value?.getBoundingClientRect().top ?? 0) - component.value.position.y,
     }
-
+    
     component.value.size = snapVector2(relative);
   }
 })

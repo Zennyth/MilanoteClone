@@ -9,13 +9,16 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, Ref } from 'vue';
+import { onMounted, ref, Ref } from 'vue';
 import Board from './Board.vue';
+import { useBoardStore } from '@/store/modules/boardStore';
 
 const viewport: Ref<HTMLDivElement | undefined> = ref();
 const position = ref({
   top: 0, left: 0, x: 0, y: 0
 });
+
+const { addZoom } = useBoardStore();
 
 // handle grabbing
 const mousedown = (event: MouseEvent) => {
@@ -53,7 +56,20 @@ const mouseup = (_event: MouseEvent) => {
   document.removeEventListener('mousemove', mousemove);
   document.removeEventListener('mouseup', mouseup);
 
-  viewport.value!.style.cursor = 'grab';
+  viewport.value!.style.cursor = '';
   viewport.value!.style.removeProperty('user-select');
 }
+
+// handle zoom
+const wheel = (event: WheelEvent) => {
+  if (!event.ctrlKey)
+    return
+
+  event.preventDefault();
+  addZoom(- event.deltaY / 1000);
+}
+
+onMounted(() => {
+  viewport.value?.addEventListener("wheel", wheel)
+})
 </script>
