@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, StyleValue, computed, onUpdated, ref, watch } from 'vue'
+import { Ref, StyleValue, computed, ref, watch, defineExpose } from 'vue'
 import { BoardComponentData } from './types'
 
 const props = defineProps(['modelValue', 'isDragging'])
@@ -31,7 +31,7 @@ const style: Ref<StyleValue> = computed(() => ({
   left: !component.value.isInContainer ? `${component.value.position.x}px` : '',
   top: !component.value.isInContainer ? `${component.value.position.y}px` : '',
   width: component.value.size.x !== 0 && !component.value.isInContainer ? `${component.value.size.x}px` : '',
-  height: component.value.size.y !== 0 && !component.value.isInContainer? `${component.value.size.y}px` : ''
+  // height: component.value.size.y !== 0 && !component.value.isInContainer? `${component.value.size.y}px` : ''
 }))
 
 function componentMousedown(event: MouseEvent, target: BoardComponentData = component.value) {
@@ -73,17 +73,19 @@ watch([() => component.value?.position?.x, () => component.value?.position?.y], 
   `
 })
 
-onUpdated(async () => {
-  if (component.value.size.x === 0 || component.value.size.y === 0) {
-    const rect = boardComponent.value!.getBoundingClientRect();
+// onUpdated(async () => {
+//   if (component.value.size.x === 0 || component.value.size.y === 0) {
+//     const rect = boardComponent.value!.getBoundingClientRect();
 
-    if (rect.width === 0 && rect.height === 0)
-      return;
+//     if (rect.width === 0 && rect.height === 0)
+//       return;
 
-    component.value.size.x = rect.width;
-    component.value.size.y = rect.height;
-  }
-})
+//     component.value.size.x = rect.width;
+//     component.value.size.y = rect.height;
+//   }
+// })
+
+defineExpose({ component, root: boardComponent})
 </script>
 
 <style lang="scss">

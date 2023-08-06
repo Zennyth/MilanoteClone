@@ -7,6 +7,8 @@ import { WebsocketProvider } from 'y-websocket'
 import { BoardComponentData, Shape, Vector2 } from '@/components/board/types'
 import { EventHandler } from '@/utils/events'
 
+import { Awareness } from 'y-protocols/awareness.js'
+
 interface SnapSettings {
 	enabled: boolean
 	gridSize: number
@@ -31,10 +33,16 @@ interface InteractionState {
 	isSelected: boolean
 
 	isDragging: boolean
+	onDragging: EventHandler<BoardComponentData>
 	onDropped: EventHandler<BoardComponentData>
 
 	hasMoved: boolean
 	timeout: ReturnType<typeof setTimeout> | undefined
+}
+
+interface AwarenessState {
+	instance: Awareness | undefined,
+	users: Array<any>
 }
 
 interface BoardState {
@@ -42,6 +50,7 @@ interface BoardState {
 	sync: SyncState
 	board: Ref<HTMLDivElement> | undefined
 	interaction: InteractionState
+	awareness: AwarenessState
 }
 
 export const useBoardStore = defineStore('boardStore', {
@@ -65,9 +74,14 @@ export const useBoardStore = defineStore('boardStore', {
 			offset: { x: 0, y: 0 },
 			isSelected: false,
 			isDragging: false,
+			onDragging: new EventHandler<BoardComponentData>(),
 			onDropped: new EventHandler<BoardComponentData>(),
 			hasMoved: false,
 			timeout: undefined
+		},
+		awareness: {
+			instance: undefined,
+			users: []
 		}
 	}),
 	getters: {
@@ -92,6 +106,9 @@ export const useBoardStore = defineStore('boardStore', {
 		},
 		draggedComponent(): BoardComponentData | undefined {
 			return this.interaction.isDragging ? this.interaction.target : undefined;
+		},
+		users(): Array<any> {
+			return this.awareness.users;
 		}
 	},
 	actions: {
@@ -112,9 +129,24 @@ export const useBoardStore = defineStore('boardStore', {
 			this.sync.doc = getYjsDoc(this.sync.store)
 			this.sync.provider = new WebsocketProvider(
 				'ws://localhost:8080',
-				'syncedstore-board-21',
+				'syncedstore-board-30',
 				this.sync.doc
 			)
+
+			const awareness = this.sync.provider.awareness as Awareness
+			awareness.on('change', () => {
+				const users: Array<any> = [];
+
+				awareness.getStates().forEach(state => {
+					if (state.user) {
+						users.push(state.user)
+					}
+				});
+
+				this.awareness.users = users;
+			})
+			awareness.setLocalStateField('user', mockProfiles.random())
+			this.awareness.instance = awareness
 
 			this.board = board
 		},
@@ -122,9 +154,44 @@ export const useBoardStore = defineStore('boardStore', {
 			this.sync.store.components.push(data)
 		},
 		removeComponent(data: BoardComponentData) {
-			this.sync.store.components.splice(this.sync.store.components.indexOf(data), 1);		},
+			this.sync.store.components.splice(this.sync.store.components.indexOf(data), 1);
+		},
 		addZoom(amount: number) {
 			this.setZoom(this.zoom + amount);
 		}
 	}
 })
+
+declare global {
+	interface Array<T> {
+		random(): T;
+	}
+}
+
+Array.prototype.random = function () {
+	return this[Math.floor(Math.random() * this.length)];
+}
+
+
+const mockProfiles = [
+	{
+		name: "Asiya Javayant",
+		img: "https://primefaces.org/cdn/primevue/images/avatar/asiyajavayant.png"
+	},
+	{
+		name: "Onyama Limba",
+		img: "https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png"
+	},
+	{
+		name: "Ioni Bowcher",
+		img: "https://primefaces.org/cdn/primevue/images/avatar/ionibowcher.png"
+	},
+	{
+		name: "Xuxu Feng",
+		img: "https://primefaces.org/cdn/primevue/images/avatar/xuxuefeng.png"
+	},
+	{
+		name: "Amy Elsner",
+		img: "https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png"
+	}
+]

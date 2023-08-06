@@ -15,7 +15,8 @@
     "paths": {
       "@/*": ["src/*"],
       "@components/*": ["src/components/*"],
-      "@assets/*": ["src/assets/*"]
+      "@assets/*": ["src/assets/*"],
+			"@board/*": ["src/components/board/*"]
     }
   },
   "exclude": ["node_modules", "dist"]

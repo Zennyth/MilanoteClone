@@ -2,7 +2,7 @@ import { App, Component } from 'vue';
 
 import Editor from '@/components/board/components/Editor.vue';
 import Image from '@/components/board/components/Image.vue';
-import Column from '@/components/board/components/Column.vue';
+import Column from '@/components/board/components/containers/Column.vue';
 
 
 

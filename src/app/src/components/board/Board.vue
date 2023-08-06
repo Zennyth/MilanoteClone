@@ -67,14 +67,15 @@ const mousemove = (event: MouseEvent) => {
 	interaction.target!.position.x = event.clientX - interaction.offset.x
 	interaction.target!.position.y = event.clientY - interaction.offset.y
 	interaction.hasMoved = true
+	boardStore.interaction.onDragging.fire(interaction.target)
 }
 
 const mouseup = (event: MouseEvent) => {
 	interaction.isDragging = false
 
-	if (interaction.target !== undefined) {
+	if (interaction.target !== undefined && interaction.target.id !== undefined) {
 		interaction.target.isDragged = false
-		interaction.target.position = boardStore.snapVector2(interaction.target!.position)
+		interaction.target.position = boardStore.snapVector2(interaction.target.position)
 		boardStore.interaction.onDropped.fire(interaction.target)
 	}
 

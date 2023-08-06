@@ -5,13 +5,13 @@
 				<Breadcrumb :home="home" :model="items" />
 			</div>
 			<div class="header-right">
-				<Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" />
+				<!-- <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" /> -->
 				<AvatarGroup>
-					<Avatar image="https://primefaces.org/cdn/primevue/images/avatar/asiyajavayant.png" shape="circle" />
-					<Avatar image="https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png" shape="circle" />
+					<Avatar v-for="user in users" :key="user.name" :image="user.img" shape="circle" />
+					<!-- <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png" shape="circle" />
 					<Avatar image="https://primefaces.org/cdn/primevue/images/avatar/ionibowcher.png" shape="circle" />
 					<Avatar image="https://primefaces.org/cdn/primevue/images/avatar/xuxuefeng.png" shape="circle" />
-					<Avatar label="+2" shape="circle" :style="{ 'background-color': '#f8f9fa', color: '#495057' }" />
+					<Avatar label="+2" shape="circle" :style="{ 'background-color': '#f8f9fa', color: '#495057' }" /> -->
 				</AvatarGroup>
 			</div>
 		</div>
@@ -44,7 +44,7 @@ const outsideClickListener = ref(null)
 const topbarMenuActive = ref(false)
 const router = useRouter()
 const boardStore = useBoardStore();
-const { zoom } = storeToRefs(boardStore);
+const { zoom, users } = storeToRefs(boardStore);
 
 
 const home = ref({
@@ -58,6 +58,7 @@ const items = ref([
 
 onMounted(() => {
 	bindOutsideClickListener()
+	console.log(users)
 })
 
 onBeforeUnmount(() => {
