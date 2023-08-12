@@ -4,14 +4,11 @@
 			<div class="header-left">
 				<Breadcrumb :home="home" :model="items" />
 			</div>
-			<div class="header-right">
-				<!-- <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png" shape="circle" /> -->
+			<div class="header-right" v-if="me !== undefined">
+				<Avatar :image="me.img" shape="circle" />
 				<AvatarGroup>
-					<Avatar v-for="user in users" :key="user.name" :image="user.img" shape="circle" />
-					<!-- <Avatar image="https://primefaces.org/cdn/primevue/images/avatar/onyamalimba.png" shape="circle" />
-					<Avatar image="https://primefaces.org/cdn/primevue/images/avatar/ionibowcher.png" shape="circle" />
-					<Avatar image="https://primefaces.org/cdn/primevue/images/avatar/xuxuefeng.png" shape="circle" />
-					<Avatar label="+2" shape="circle" :style="{ 'background-color': '#f8f9fa', color: '#495057' }" /> -->
+					<Avatar v-for="user in othersToDisplay" :key="user.id" :image="user.img" shape="circle" />
+					<Avatar v-if="numberOfUsersToHide > 0" :label="`+${numberOfUsersToHide}`" shape="circle" :style="{ 'background-color': '#f8f9fa', color: '#495057' }" />
 				</AvatarGroup>
 			</div>
 		</div>
@@ -24,27 +21,22 @@
 			<div class="header-right">
 				<Button plain text label="Share" class="mr-2" />
 				<Button plain text iconPos="right" icon="pi pi-angle-down" label="Export"  />
-				<Button plain text iconPos="right" icon="pi pi-angle-down" :label="`${Math.round(zoom * 100)}%`" />
+				<ZoomButton />
 			</div>
 		</div>
 	</div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+<script lang="ts" setup>
+import ZoomButton from './components/ZoomButton.vue'
+
+import { ref } from 'vue'
 import { storeToRefs } from 'pinia'
 
-import { useLayout } from '@/layout/composables/layout'
-import { useRouter } from 'vue-router'
 import { useBoardStore } from '@/store/modules/boardStore'
 
-const { layoutConfig, onMenuToggle, contextPath } = useLayout()
-
-const outsideClickListener = ref(null)
-const topbarMenuActive = ref(false)
-const router = useRouter()
 const boardStore = useBoardStore();
-const { zoom, users } = storeToRefs(boardStore);
+const { me, othersToDisplay, numberOfUsersToHide } = storeToRefs(boardStore);
 
 
 const home = ref({
@@ -55,63 +47,6 @@ const items = ref([
 	{ label: 'Game' },
 	{ label: 'Art References' }
 ])
-
-onMounted(() => {
-	bindOutsideClickListener()
-	console.log(users)
-})
-
-onBeforeUnmount(() => {
-	unbindOutsideClickListener()
-})
-
-const logoUrl = computed(() => {
-	return `${contextPath}layout/images/${layoutConfig.darkTheme.value ? 'logo-white' : 'logo-dark'
-		}.svg`
-})
-
-const onTopBarMenuButton = () => {
-	topbarMenuActive.value = !topbarMenuActive.value
-}
-const onSettingsClick = () => {
-	topbarMenuActive.value = false
-	router.push('/documentation')
-}
-const topbarMenuClasses = computed(() => {
-	return {
-		'layout-topbar-menu-mobile-active': topbarMenuActive.value
-	}
-})
-
-const bindOutsideClickListener = () => {
-	if (!outsideClickListener.value) {
-		outsideClickListener.value = (event) => {
-			if (isOutsideClicked(event)) {
-				topbarMenuActive.value = false
-			}
-		}
-		document.addEventListener('click', outsideClickListener.value)
-	}
-}
-const unbindOutsideClickListener = () => {
-	if (outsideClickListener.value) {
-		document.removeEventListener('click', outsideClickListener)
-		outsideClickListener.value = null
-	}
-}
-const isOutsideClicked = (event) => {
-	if (!topbarMenuActive.value) return
-
-	const sidebarEl = document.querySelector('.layout-topbar-menu')
-	const topbarEl = document.querySelector('.layout-topbar-menu-button')
-
-	return !(
-		sidebarEl.isSameNode(event.target) ||
-		sidebarEl.contains(event.target) ||
-		topbarEl.isSameNode(event.target) ||
-		topbarEl.contains(event.target)
-	)
-}
 </script>
 
 <style lang="scss" scoped></style>

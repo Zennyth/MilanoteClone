@@ -1,30 +1,34 @@
 <template>
-	<div class="board grid" ref="board" @mousemove="mousemove" @mouseup="mouseup" @click.right="rightClick" :style="style">
+	<div class="board grid" ref="board" @mousemove="mousemove" @mouseup="mouseup" @click.right="rightClick">
 		<BoardComponent v-for="(component, index) in components" :key="component.id" v-model="components[index]"
-			:is-dragging="interaction.isDragging" @component-mousedown="mousedown">
+			:is-dragging="interaction.isDragging" @component-mousedown="componentMousedown">
 		</BoardComponent>
 	</div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed, watch, Ref, StyleValue } from 'vue'
+import { ref, onMounted, watch, Ref, nextTick } from 'vue'
 
 import BoardComponent from '@/components/board/BoardComponent.vue'
 import { useBoardStore } from '@/store/modules/boardStore'
-import { BoardComponentData, Shape, createDefaultComponent } from './types'
+import { BoardComponentData, Shape, Vector2, createDefaultComponent } from './types'
 import { storeToRefs } from 'pinia'
-import { getBoundingBox } from '@/utils/grid'
+import { isIn } from '@/utils/grid'
+import { useDrag } from '@/composables/drag'
 
 const board = ref<HTMLDivElement>()
+const emit = defineEmits(['ready'])
+
 const boardStore = useBoardStore()
 const { interaction, openBoard } = boardStore
 const { components, zoom } = storeToRefs(boardStore)
 
 
-watch(() => components.value, () => {
-	boundingBox.value = getBoundingBox(components.value);
-}, { deep: true })
-const boundingBox: Ref<Shape> = ref({ position: { x: 0, y: 0 }, size: { x: 0, y: 0 }, rotation: 0 });
+import { useRoute } from 'vue-router'
+
+const route = useRoute()
+const boardId: string | string[] = route.params.id
+
 
 function rightClick(event: MouseEvent) {
 	event.preventDefault()
@@ -34,10 +38,47 @@ function rightClick(event: MouseEvent) {
 }
 
 onMounted(() => {
-	openBoard(board.value, '')
+	if(Array.isArray(boardId)) {
+		return
+	}
+
+	openBoard(board.value, boardId)
+	setTimeout(() => ready(), 100)
 })
 
-const mousedown = (event: MouseEvent, component: BoardComponentData) => {
+function ready() {
+	emit('ready')
+
+	nextTick(boardStore.scaleZoomToFit)
+}
+
+
+// handle multiple selection
+const startMultipleSelectionPosition: Ref<Vector2> = ref({ x: 0, y: 0 })
+const endMultipleSelectionPosition: Ref<Vector2> = ref({ x: 0, y: 0 })
+
+useDrag({
+	element: board,
+	onStartDragging: (event: MouseEvent) => {
+		startMultipleSelectionPosition.value = { x: event.clientX, y: event.clientY }
+	},
+	onStopDragging: (event: MouseEvent) => {
+		endMultipleSelectionPosition.value = { x: event.clientX, y: event.clientY }
+
+		const selectionShape: Shape = {
+			position: startMultipleSelectionPosition.value,
+			size: { x: endMultipleSelectionPosition.value.x - startMultipleSelectionPosition.value.x, y: endMultipleSelectionPosition.value.y - startMultipleSelectionPosition.value.y },
+			rotation: 0
+		}
+
+		const selectedComponents: Array<BoardComponentData> = components.value.filter(c => isIn(selectionShape, c))
+		console.warn(selectedComponents)
+	}
+})
+
+
+// handle component movements
+const componentMousedown = (event: MouseEvent, component: BoardComponentData) => {
 	if (event.which !== 1) {
 		return
 	}
@@ -46,30 +87,29 @@ const mousedown = (event: MouseEvent, component: BoardComponentData) => {
 	interaction.target = component
 	interaction.isEvent = true
 	event.preventDefault()
+	event.stopPropagation()
 
-	
+
 	interaction.timeout = setTimeout(() => {
 		if (component.isDraggable === false) {
 			return
 		}
-		
+
 		interaction.isDragging = true
 		component.isDragged = true
-		interaction.offset.x = event.clientX - component.position.x
-		interaction.offset.y = event.clientY - component.position.y
+		interaction.offset.x = (event.clientX / zoom.value) - component.position.x
+		interaction.offset.y =(event.clientY / zoom.value) - component.position.y
 		interaction.timeout = undefined
 	}, 100)
 }
-
 const mousemove = (event: MouseEvent) => {
 	if (!interaction.isDragging || interaction.target === undefined) return
 
-	interaction.target!.position.x = event.clientX - interaction.offset.x
-	interaction.target!.position.y = event.clientY - interaction.offset.y
+	interaction.target!.position.x = (event.clientX / zoom.value) - interaction.offset.x
+	interaction.target!.position.y = (event.clientY / zoom.value) - interaction.offset.y
 	interaction.hasMoved = true
 	boardStore.interaction.onDragging.fire(interaction.target)
 }
-
 const mouseup = (event: MouseEvent) => {
 	interaction.isDragging = false
 
@@ -98,11 +138,6 @@ const mouseup = (event: MouseEvent) => {
 	}
 	interaction.target = undefined
 }
-
-const style: Ref<StyleValue> = computed(() => ({
-	with: boundingBox.value.size.x !== 0 ? `${boundingBox.value.size.x}px` : '',
-	height: boundingBox.value.size.y !== 0 ? `${boundingBox.value.size.y}px` : ''
-}))
 
 
 watch(() => zoom.value, () => {

@@ -6,7 +6,7 @@ interface DragConfiguration {
   enableDrag?(event: MouseEvent): boolean;
   onStartDragging?(event: MouseEvent): void;
   onDragging?(event: MouseEvent): void;
-  onStopDragging?(): void;
+  onStopDragging?(event: MouseEvent): void;
 }
 
 export function useDrag(configuration: DragConfiguration) {
@@ -35,9 +35,9 @@ export function useDrag(configuration: DragConfiguration) {
     }
   }
 
-  function stopDragging() {
+  function stopDragging(event: MouseEvent) {
     isDragging.value = false;
-    configuration.onStopDragging?.();
+    configuration.onStopDragging?.(event);
 
     window.removeEventListener('mousemove', dragging);
     window.removeEventListener('mouseup', stopDragging);

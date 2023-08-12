@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import { Ref, StyleValue, computed, ref, watch, defineExpose } from 'vue'
+import { Ref, StyleValue, computed, onMounted, ref, watch } from 'vue'
 import { BoardComponentData } from './types'
 
 const props = defineProps(['modelValue', 'isDragging'])
@@ -56,7 +56,7 @@ watch([() => component.value?.position?.x, () => component.value?.position?.y], 
 
   const velocity = { x: newX - oldX, y: newY - oldY }
   const distance = Math.sqrt(velocity.x ** 2 + velocity.y ** 2)
-  component.value.velocity = velocity
+  // component.value.velocity = velocity
 
   if (distance < DISTANCE_THRESHOLD_TRANSFORM) {
     boardComponent.value!.style.transform = ''
@@ -73,17 +73,19 @@ watch([() => component.value?.position?.x, () => component.value?.position?.y], 
   `
 })
 
-// onUpdated(async () => {
-//   if (component.value.size.x === 0 || component.value.size.y === 0) {
-//     const rect = boardComponent.value!.getBoundingClientRect();
-
-//     if (rect.width === 0 && rect.height === 0)
-//       return;
-
-//     component.value.size.x = rect.width;
-//     component.value.size.y = rect.height;
-//   }
-// })
+onMounted(async () => {
+	setTimeout(() => {
+		if (component.value.size.x === 0 || component.value.size.y === 0) {
+			const rect = boardComponent.value!.getBoundingClientRect();
+	
+			if (rect.width === 0 && rect.height === 0)
+				return;
+	
+			component.value.size.x = rect.width;
+			component.value.size.y = rect.height;
+		}
+	}, 100)
+})
 
 defineExpose({ component, root: boardComponent})
 </script>
